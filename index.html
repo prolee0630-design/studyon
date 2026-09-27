@@ -197,6 +197,12 @@
   
 .photo-upload{display:flex;flex-direction:column;align-items:center;text-align:center;gap:14px;padding:36px 20px;border:2px dashed #a6b3ea;border-radius:18px;background:#f7f9ff;cursor:pointer;overflow-wrap:anywhere}.photo-upload:focus-within{outline:3px solid #304ad4;outline-offset:3px}.photo-upload strong{font-size:1.25rem}.photo-upload input{max-width:100%;min-width:0}.photo-upload:hover{background:#eef2ff}#photo-form{display:grid;grid-template-columns:minmax(0,1fr);gap:20px}#photo-form>*{min-width:0;max-width:100%}#photo-image{display:block;max-width:100%;max-height:500px;object-fit:contain;margin:0 auto 16px}#photo-result-body p{white-space:pre-wrap;overflow-wrap:anywhere}#photo-legacy details{padding:16px 0}#photo-legacy p{overflow-wrap:anywhere}#photo-form [hidden]{display:none!important}@media(max-width:520px){#photo-form .task-actions{flex-wrap:wrap}#photo-form .task-actions button{flex:1 1 100%;white-space:normal}}
 </style>
+<script type="module">
+  import * as pdfjsLib from 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.10.38/pdf.min.mjs';
+  pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.10.38/pdf.worker.min.mjs';
+  window.studyonPdf = pdfjsLib;
+</script>
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 </head>
 <body>
   <div class="app">
@@ -255,14 +261,14 @@
       <section class="view" id="grading">
         <div class="section-head"><div><h2>답지 기준 채점</h2><p class="muted">등록된 답지에서 문제를 찾아 내 답과 비교해요. 정답은 학생에게 전송되지 않아요.</p></div></div>
         <form id="student-grade-form" class="card study-card">
-          <div class="form-row"><label class="field" for="grade-bank">내 답지<select id="grade-bank" required></select></label><label class="field" for="grade-chapter">단원<input id="grade-chapter" maxlength="120" required placeholder="예: 도형의 성질"></label></div>
+          <div class="form-row"><label class="field" for="grade-bank">내 답지<select id="grade-bank" required></select></label></div>
           <div class="form-row"><label class="field" for="grade-page">페이지<input id="grade-page" inputmode="numeric" pattern="[0-9]+" maxlength="5" required placeholder="예: 48"></label><label class="field" for="grade-question">문제 번호<input id="grade-question" inputmode="numeric" pattern="[0-9]+" maxlength="5" required placeholder="예: 7"></label></div>
           <label class="field" for="grade-answer">내 답<input id="grade-answer" maxlength="400" required placeholder="예: ③ 또는 12cm"></label>
           <div class="task-actions"><button class="study-button filled" type="submit">내 답 채점하기</button></div><p id="student-grade-status" class="profile-message" role="status" aria-live="polite"></p>
         </form>
         <section id="student-grade-result" class="card study-card" hidden><h3 id="student-grade-title"></h3><p id="student-grade-detail" class="profile-hint"></p></section>
-        <details class="card study-card" id="answer-admin"><summary>내 답지 등록</summary><p class="profile-hint">누구나 자기 교재 답지를 등록할 수 있어요. 등록된 정답은 채점 화면에 표시되지 않습니다.</p>
-          <form id="answer-admin-form" class="extra-stack"><label class="field" for="answer-book">교재 이름<input id="answer-book" maxlength="120" required placeholder="예: 개념원리 수학 1-2"></label><label class="photo-upload" for="answer-import"><span class="icon">＋</span><strong>답지 목록 파일 불러오기</strong><span>TXT 또는 CSV 파일을 선택하면 아래 입력칸에 불러와요.</span><input id="answer-import" type="file" accept="text/plain,text/csv,.txt,.csv"></label><label class="field" for="answer-entries">답지 목록 <span class="profile-hint">한 줄에 한 문제씩 <code>교재 | 단원 | 페이지 | 문제 번호 | 정답</code> 형식으로 입력해요.</span><textarea id="answer-entries" rows="9" maxlength="60000" placeholder="개념원리 수학 1-2 | 도형의 성질 | 48 | 7 | ③"></textarea></label><div class="task-actions"><button class="study-button filled" type="submit">답지 등록하기</button></div><p id="answer-admin-status" class="profile-message" role="status" aria-live="polite"></p></form>
+        <details class="card study-card" id="answer-admin"><summary>내 답지 업로드</summary><p class="profile-hint">교재 이름과 답지 PDF·사진을 올리면 문제 번호와 정답을 자동으로 인식해 저장해요. 저장된 정답은 채점 화면에 표시되지 않습니다.</p>
+          <div class="extra-stack"><label class="field" for="answer-book">교재 이름<input id="answer-book" maxlength="120" required placeholder="예: 개념원리 수학 1-2"></label><label class="photo-upload" for="answer-import"><span class="icon">＋</span><strong>답지 파일 업로드</strong><span>PDF 또는 사진을 선택하면 바로 OCR 인식과 저장을 시작해요.</span><input id="answer-import" type="file" accept="application/pdf,image/*,.pdf"></label><p class="profile-hint">인식한 답지는 이 브라우저의 내 답지 목록에만 추가돼요. PDF 안에 적힌 <strong>p. 48</strong> 같은 페이지 표기가 있으면 그 번호를 사용하고, 없으면 PDF의 쪽수를 사용해요.</p><p id="answer-admin-status" class="profile-message" role="status" aria-live="polite"></p></div>
         </details>
       </section>
 
@@ -682,11 +688,29 @@ const Review = (() => {
  const banks=()=>JSON.parse(localStorage.getItem('studyon.answer-banks.v1')||'[]');
  const saveBanks=value=>localStorage.setItem('studyon.answer-banks.v1',JSON.stringify(value));
  const renderBanks=()=>{const list=banks(),select=$('grade-bank');select.replaceChildren();if(!list.length){select.append(new Option('먼저 답지를 등록해 주세요.',''));return;}for(const bank of list)select.append(new Option(bank.title,bank.id));};
- const fields=()=>({book:($('grade-bank').selectedOptions[0]?.textContent||'').trim(),chapter:$('grade-chapter').value.trim(),page:$('grade-page').value.trim(),question:$('grade-question').value.trim()});
+ const fields=()=>({book:($('grade-bank').selectedOptions[0]?.textContent||'').trim(),chapter:'전체',page:$('grade-page').value.trim(),question:$('grade-question').value.trim()});
  async function request(body, headers={}){const response=await fetch(endpoint,{method:'POST',headers:{'Content-Type':'application/json',...headers},body:JSON.stringify(body)});const data=await response.json().catch(()=>({}));if(!response.ok)throw Error(data.error||'요청을 처리하지 못했어요.');return data;}
  $('student-grade-form').addEventListener('submit',async event=>{event.preventDefault();const values={...fields(),bankId:$('grade-bank').value,answer:$('grade-answer').value.trim()};setStatus('student-grade-status','답지를 확인하고 있어요.');$('student-grade-result').hidden=true;try{const data=await request({action:'grade',...values});const correct=data.verdict==='correct';$('student-grade-title').textContent=correct?'정답이에요!':'오답이에요';$('student-grade-title').className=correct?'grade-ok':'grade-miss';$('student-grade-detail').textContent=correct?'등록된 답지와 내 답이 같아요.':'등록된 답지와 내 답이 달라요. 답지는 표시하지 않아요.';$('student-grade-result').hidden=false;setStatus('student-grade-status','채점했어요.');}catch(error){setStatus('student-grade-status',error.message,true);}});
- $('answer-import').addEventListener('change',async()=>{const file=$('answer-import').files[0];if(!file)return;if(file.size>1024*1024){setStatus('answer-admin-status','1MB 이하의 TXT 또는 CSV 파일을 선택해 주세요.',true);return;}try{$('answer-entries').value=await file.text();setStatus('answer-admin-status','답지 목록을 불러왔어요. 형식을 확인한 뒤 등록해 주세요.');}catch{setStatus('answer-admin-status','파일을 읽지 못했어요.',true);}});
- $('answer-admin-form').addEventListener('submit',async event=>{event.preventDefault();const entries=[];const invalid=[];$('answer-entries').value.split(/\r?\n/).forEach((line,index)=>{if(!line.trim())return;const parts=line.split('|').map(value=>value.trim());if(parts.length!==5||parts.some(value=>!value))invalid.push(index+1);else entries.push({book:parts[0],chapter:parts[1],page:parts[2],question:parts[3],answer:parts[4]});});if(invalid.length){setStatus('answer-admin-status',`답지 ${invalid.join(', ')}번째 줄 형식을 확인해 주세요.`,true);return;}setStatus('answer-admin-status','답지를 안전하게 저장하고 있어요.');try{const title=$('answer-book').value.trim();if(!title){setStatus('answer-admin-status','교재 이름을 입력해 주세요.',true);return;}const bankId=crypto.randomUUID().replaceAll('-','');const data=await request({action:'register',bankId,entries});saveBanks([...banks().filter(bank=>bank.title!==title),{id:bankId,title}]);renderBanks();setStatus('answer-admin-status',`${data.saved}개 문제의 답지를 내 보관함에 등록했어요.`);}catch(error){setStatus('answer-admin-status',error.message,true);}});
+ const toEntries=(pages,title)=>{
+   const entries=[],seen=new Set();
+   pages.forEach((text,pdfPage)=>{let answerPage='';
+     for(const raw of text.split(/\r?\n/)){const line=raw.trim();
+       const pageMatch=line.match(/(?:p(?:age)?\.?|페이지|쪽)\s*[:：.]?\s*(\d{1,5})/i); if(pageMatch)answerPage=pageMatch[1];
+       const matches=[...line.matchAll(/(?:^|\s)(\d{1,5})\s*(?:번)?\s*[.)\]:：-]\s*([①②③④⑤⑥⑦⑧⑨⑩]|[OoXx]|[1-9]|[가-힣A-Za-z]+(?:\s*,\s*[가-힣A-Za-z0-9]+)*)(?=\s|$)/g)]; if(!matches.length)continue;
+       for(const match of matches){const page=answerPage||String(pdfPage+1),key=`${page}|${match[1]}`; if(seen.has(key))continue; seen.add(key);entries.push({book:title,chapter:'전체',page,question:match[1],answer:match[2]});}
+     }
+   }); return entries;
+ };
+ const pdfText=content=>{const lines=new Map();for(const item of content.items){if(!item.str)continue;const y=Math.round(item.transform[5]);if(!lines.has(y))lines.set(y,[]);lines.get(y).push({x:item.transform[4],text:item.str});}return [...lines.entries()].sort((a,b)=>b[0]-a[0]).map(([,items])=>items.sort((a,b)=>a.x-b.x).map(item=>item.text).join(' ')).join('\n');};
+ const ocrWorker=async()=>{if(!window.Tesseract)throw Error('OCR 도구를 준비하지 못했어요. 인터넷 연결을 확인한 뒤 다시 시도해 주세요.'); return window.Tesseract.createWorker('kor+eng',1,{logger:message=>{if(message.status==='recognizing text')setStatus('answer-admin-status',`OCR로 글자를 읽고 있어요. ${Math.round((message.progress||0)*100)}%`);}});};
+ const ocrPdfPage=async(pdf,pageNumber,worker)=>{const page=await pdf.getPage(pageNumber),viewport=page.getViewport({scale:1.7}),canvas=document.createElement('canvas');canvas.width=Math.ceil(viewport.width);canvas.height=Math.ceil(viewport.height);await page.render({canvasContext:canvas.getContext('2d'),viewport}).promise;return (await worker.recognize(canvas)).data.text;};
+ const readAnswerFile=async(file,title)=>{const isPdf=file.type==='application/pdf'||/\.pdf$/i.test(file.name); if(!isPdf){const worker=await ocrWorker();try{setStatus('answer-admin-status','사진에서 답지를 OCR로 읽고 있어요.');return [ (await worker.recognize(file)).data.text ];}finally{await worker.terminate();}}
+   if(!window.studyonPdf)throw Error('PDF 읽기 도구를 준비 중이에요. 잠시 후 다시 선택해 주세요.'); const pdf=await window.studyonPdf.getDocument({data:new Uint8Array(await file.arrayBuffer())}).promise; if(pdf.numPages>60)throw Error('OCR 처리 시간 때문에 60쪽 이하의 답지 PDF만 올릴 수 있어요.'); const pages=[],needsOcr=[];
+   for(let pageNumber=1;pageNumber<=pdf.numPages;pageNumber++){setStatus('answer-admin-status',`PDF ${pageNumber}/${pdf.numPages}쪽의 글자를 확인하고 있어요.`);const content=await (await pdf.getPage(pageNumber)).getTextContent();const text=pdfText(content);pages.push(text);if(text.replace(/\s/g,'').length<10)needsOcr.push(pageNumber);}
+   if(needsOcr.length){const worker=await ocrWorker();try{for(const pageNumber of needsOcr){setStatus('answer-admin-status',`PDF ${pageNumber}/${pdf.numPages}쪽을 OCR로 읽고 있어요.`);pages[pageNumber-1]=await ocrPdfPage(pdf,pageNumber,worker);}}finally{await worker.terminate();}} return pages;
+ };
+ const saveEntries=async(title,entries)=>{const bankId=crypto.randomUUID().replaceAll('-','');let saved=0;for(let start=0;start<entries.length;start+=500){setStatus('answer-admin-status',`${entries.length}개 문제를 안전하게 저장하고 있어요. (${Math.min(start+500,entries.length)}/${entries.length})`);const data=await request({action:'register',bankId,entries:entries.slice(start,start+500)});saved+=data.saved;}saveBanks([...banks().filter(bank=>bank.title!==title),{id:bankId,title}]);renderBanks();return saved;};
+ $('answer-import').addEventListener('change',async()=>{const file=$('answer-import').files[0],title=$('answer-book').value.trim();if(!file)return;if(!title){setStatus('answer-admin-status','먼저 교재 이름을 입력해 주세요.',true);$('answer-import').value='';return;}const isPdf=file.type==='application/pdf'||/\.pdf$/i.test(file.name),maxSize=isPdf?25*1024*1024:10*1024*1024;if(file.size>maxSize){setStatus('answer-admin-status',isPdf?'25MB 이하의 PDF를 선택해 주세요.':'10MB 이하의 사진을 선택해 주세요.',true);return;}try{const entries=toEntries(await readAnswerFile(file,title),title);if(!entries.length)throw Error('문제 번호와 정답 쌍을 찾지 못했어요. 답지의 글자와 번호·정답 표기를 확인해 주세요.');const saved=await saveEntries(title,entries);setStatus('answer-admin-status',`${saved}개 문제를 인식해 내 답지에 저장했어요. 이제 문제 페이지·번호·내 답을 입력해 채점할 수 있어요.`);$('answer-import').value='';}catch(error){setStatus('answer-admin-status',error.message||'답지를 읽거나 저장하지 못했어요.',true);}});
 renderBanks();
 })();
 
