@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="계획, 답지 채점, 오답 복습을 한곳에서 관리하는 학생용 학습 코치 앱">
+  <meta name="description" content="계획, 오답 복습과 학습 기록을 한곳에서 관리하는 학생용 학습 코치 앱">
   <title>스터디온 · 나만의 학습 코치</title>
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%23204bd8'/%3E%3Cpath d='M18 20h20a8 8 0 0 1 8 8v20H26a8 8 0 0 1-8-8V20Z' fill='white'/%3E%3Cpath d='M26 20v28M32 29h8M32 36h8' stroke='%23204bd8' stroke-width='4' stroke-linecap='round'/%3E%3C/svg%3E">
   <style>
@@ -197,12 +197,6 @@
   
 .photo-upload{display:flex;flex-direction:column;align-items:center;text-align:center;gap:14px;padding:36px 20px;border:2px dashed #a6b3ea;border-radius:18px;background:#f7f9ff;cursor:pointer;overflow-wrap:anywhere}.photo-upload:focus-within{outline:3px solid #304ad4;outline-offset:3px}.photo-upload strong{font-size:1.25rem}.photo-upload input{max-width:100%;min-width:0}.photo-upload:hover{background:#eef2ff}#photo-form{display:grid;grid-template-columns:minmax(0,1fr);gap:20px}#photo-form>*{min-width:0;max-width:100%}#photo-image{display:block;max-width:100%;max-height:500px;object-fit:contain;margin:0 auto 16px}#photo-result-body p{white-space:pre-wrap;overflow-wrap:anywhere}#photo-legacy details{padding:16px 0}#photo-legacy p{overflow-wrap:anywhere}#photo-form [hidden]{display:none!important}@media(max-width:520px){#photo-form .task-actions{flex-wrap:wrap}#photo-form .task-actions button{flex:1 1 100%;white-space:normal}}
 </style>
-<script type="module">
-  import * as pdfjsLib from 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.10.38/pdf.min.mjs';
-  pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.10.38/pdf.worker.min.mjs';
-  window.studyonPdf = pdfjsLib;
-</script>
-<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 </head>
 <body>
   <div class="app">
@@ -211,7 +205,6 @@
       <nav aria-label="주요 메뉴">
         <button class="nav active" data-view="home">홈</button>
         <button class="nav" data-view="plan">공부 계획</button>
-        <button class="nav" data-view="grading">답지 채점</button>
         <button class="nav" data-view="review">오답 복습</button>
         <button class="nav" data-view="habit">공부 습관</button>
         <button class="nav" data-view="report">학습 리포트</button>
@@ -242,7 +235,6 @@
         <div class="card home-review"><div><strong>오늘의 오답 복습</strong><p class="muted" id="home-review-count">오답 기록을 불러오는 중이에요.</p></div><button class="study-button" data-go="review">오답 복습하기 →</button></div>
         <div class="grid">
           <article class="card feature"><span class="icon">🗓</span><h3>공부 계획</h3><p>과목과 시험일까지 고려한 학습 일정을 확인해요.</p><button class="link" data-go="plan">계획 보기 →</button></article>
-          <article class="card feature"><span class="icon">⌁</span><h3>답지 채점</h3><p>문제집 답지와 내 답을 비교해요.</p><button class="link" data-go="grading">채점 시작 →</button></article>
           <article class="card feature"><span class="icon">✓</span><h3>공부 습관</h3><p>나의 공부 습관을 진단하고 작은 목표를 정해요.</p><button class="link" data-go="habit">습관 진단 →</button></article>
           <article class="card feature"><span class="icon">▥</span><h3>학습 리포트</h3><p>공부 시간과 목표 달성 변화를 한눈에 확인해요.</p><button class="link" data-go="report">리포트 보기 →</button></article>
         </div>
@@ -258,20 +250,6 @@
         <div class="card study-card timer-panel" id="timer-panel" hidden><p class="eyebrow">집중하는 중</p><h3 id="timer-task"></h3><div id="timer-clock" class="timer-clock" role="timer" aria-label="누적 공부 시간">00:00:00</div><div class="task-actions"><button class="study-button" id="pause-timer" type="button">일시정지</button><button class="study-button filled" id="finish-timer" type="button">공부 완료</button></div><p class="profile-hint">새로고침하거나 화면을 닫아도 계속 측정돼요. 쉴 때는 일시정지를 눌러 주세요. 시간은 할 일을 만든 날짜에 기록돼요.</p></div>
         <div class="card study-card"><div class="study-list-head"><h3 id="list-summary">오늘의 할 일</h3><div class="date-actions"><label class="field" for="task-date">기록 날짜<input type="date" id="task-date"></label><button class="study-button" id="show-today" type="button">오늘</button></div></div><p class="muted" id="task-empty">아직 할 일이 없어요.</p><ul id="task-list" class="task-list"></ul></div>
       </section>
-      <section class="view" id="grading">
-        <div class="section-head"><div><h2>답지 기준 채점</h2><p class="muted">등록된 답지에서 문제를 찾아 내 답과 비교해요. 정답은 학생에게 전송되지 않아요.</p></div></div>
-        <form id="student-grade-form" class="card study-card">
-          <div class="form-row"><label class="field" for="grade-bank">내 답지<select id="grade-bank" required></select></label></div>
-          <div class="form-row"><label class="field" for="grade-page">페이지<input id="grade-page" inputmode="numeric" pattern="[0-9]+" maxlength="5" required placeholder="예: 48"></label><label class="field" for="grade-question">문제 번호<input id="grade-question" inputmode="numeric" pattern="[0-9]+" maxlength="5" required placeholder="예: 7"></label></div>
-          <label class="field" for="grade-answer">내 답<input id="grade-answer" maxlength="400" placeholder="예: ③ 또는 12cm · 그리기 문제는 비워도 돼요"></label>
-          <div class="task-actions"><button class="study-button filled" type="submit">내 답 채점하기</button></div><p id="student-grade-status" class="profile-message" role="status" aria-live="polite"></p>
-        </form>
-        <section id="student-grade-result" class="card study-card" hidden><h3 id="student-grade-title"></h3><p id="student-grade-detail" class="profile-hint"></p></section>
-        <details class="card study-card" id="answer-admin"><summary>내 답지 업로드</summary><p class="profile-hint">교재 이름과 답지 PDF·사진을 올리면 문제 번호와 정답을 자동으로 인식해 저장해요. 저장된 정답은 채점 화면에 표시되지 않습니다.</p>
-          <div class="extra-stack"><label class="field" for="answer-book">교재 이름<input id="answer-book" maxlength="120" required placeholder="예: 개념원리 수학 1-2"></label><label class="field" for="answer-problem-pages">이 답지가 해당하는 문제집 페이지 <input id="answer-problem-pages" inputmode="numeric" maxlength="40" required placeholder="예: 7 또는 7~9"></label><label class="field" for="answer-manual-questions">그리기·작도 문제 번호 <span class="profile-hint">선택 사항 · 쉼표로 구분</span><input id="answer-manual-questions" inputmode="numeric" maxlength="500" placeholder="예: 3, 12"></label><label class="photo-upload" for="answer-import"><span class="icon">＋</span><strong>답지 파일 업로드</strong><span>PDF 또는 사진을 선택하면 바로 OCR 인식과 저장을 시작해요.</span><input id="answer-import" type="file" accept="application/pdf,image/*,.pdf"></label><p class="profile-hint">답지에 표시된 쪽수는 사용하지 않아요. 여기 적은 <strong>문제집 페이지</strong>만 채점 기준으로 저장해요. 그리기 문제는 번호를 적으면 자동 채점하지 않고 직접 확인이 필요하다고 알려줘요.</p><p id="answer-admin-status" class="profile-message" role="status" aria-live="polite"></p></div>
-        </details>
-      </section>
-
       <section class="view" id="habit"><div class="section-head"><div><h2>공부 습관</h2><span class="muted">현재 습관을 점검하고 개선 목표를 정합니다.</span></div></div><div class="card placeholder"><div><span class="icon">✓</span><h3>습관 진단 기능 자리</h3><p>짧은 질문에 답하면 집중, 계획, 복습 영역별로 개선 방법을 제안하게 됩니다.</p><span class="soon">기초 화면 완성</span></div></div></section>
       <section class="view" id="report">
 <div class="section-head report-heading"><div><h2>나의 학습 리포트</h2><p class="muted" id="report-period"></p></div><label class="field" for="report-range">조회 기간<select id="report-range"><option value="today">오늘</option><option value="week" selected>이번 주</option></select></label></div>
@@ -321,7 +299,7 @@
     </main>
   </div>
   <script>
-    const titles = { home:'오늘도 한 걸음씩!', plan:'나의 공부 계획', grading:'답지 채점', habit:'공부 습관 진단', report:'나의 학습 리포트', profile:'프로필 정보', review:'오답 복습' };
+    const titles = { home:'오늘도 한 걸음씩!', plan:'나의 공부 계획', habit:'공부 습관 진단', report:'나의 학습 리포트', profile:'프로필 정보', review:'오답 복습' };
     function showView(id) {
       document.querySelectorAll('.view').forEach((view) => view.classList.toggle('active', view.id === id));
       document.querySelectorAll('.nav').forEach((item) => item.classList.toggle('active', item.dataset.view === id));
@@ -683,6 +661,7 @@ const Review = (() => {
 })();
 
 (()=>{
+ return;
  const $=id=>document.getElementById(id), endpoint='/.netlify/functions/answer-bank';
  const setStatus=(id,text,error=false)=>{const target=$(id);target.textContent=text;target.classList.toggle('error',error);};
  const banks=()=>JSON.parse(localStorage.getItem('studyon.answer-banks.v1')||'[]');
@@ -719,9 +698,3 @@ renderBanks();
 </script>
 </body>
 </html>
-
-
-
-
-
-
