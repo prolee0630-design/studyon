@@ -1,1 +1,14 @@
-
+{
+  "name": "스터디온 · 나만의 학습 코치",
+  "short_name": "스터디온",
+  "description": "시험 공부 계획과 오늘의 시간표를 관리하는 학습 앱",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#f5f7fc",
+  "theme_color": "#10204c",
+  "lang": "ko",
+  "icons": [
+    { "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}
