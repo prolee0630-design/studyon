@@ -10,8 +10,9 @@
   <meta name="apple-mobile-web-app-title" content="스터디온">
   <title>스터디온 · 나만의 학습 코치</title>
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%23204bd8'/%3E%3Cpath d='M18 20h20a8 8 0 0 1 8 8v20H26a8 8 0 0 1-8-8V20Z' fill='white'/%3E%3Cpath d='M26 20v28M32 29h8M32 36h8' stroke='%23204bd8' stroke-width='4' stroke-linecap='round'/%3E%3C/svg%3E">
-  <link rel="apple-touch-icon" href="/icon.svg">
+  <link rel="apple-touch-icon" sizes="180x180" href="/icon-180.png">
   <link rel="manifest" href="/app.webmanifest">
+  <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
   <style>
     :root { --ink:#15213c; --muted:#667085; --line:#e3e8f3; --blue:#204bd8; --blue-2:#eaf0ff; --mint:#dff8ef; --surface:#fff; --bg:#f5f7fc; }
     * { box-sizing:border-box; }
@@ -707,7 +708,7 @@ const Study = (() => {
   const status=(text,error=false)=>{$('reminder-status').textContent=text;$('reminder-status').classList.toggle('error',error);};
   const render=()=>{const enabled=localStorage.getItem(enabledKey)==='true';$('enable-reminders').hidden=enabled;$('test-reminder').hidden=!enabled;$('disable-reminders').hidden=!enabled;if(!('Notification' in window))status('이 브라우저는 알림을 지원하지 않아요.',true);else if(enabled)status(Notification.permission==='granted'?'알림이 켜져 있어요. 다음 공부 1시간 전에 알려드릴게요.':'브라우저 설정에서 알림 권한을 허용해 주세요.',Notification.permission!=='granted');else status('알림을 켜면 다음 공부 시작 1시간 전에 알려드려요.');};
   const notify=()=>{if(localStorage.getItem(enabledKey)!=='true'||!('Notification' in window)||Notification.permission!=='granted')return;let saved;try{saved=JSON.parse(localStorage.getItem('studyon.exam-plan.v1')||'null');}catch{return;}const now=Date.now(),date=Study.day(now);for(const item of saved?.schedule||[]){if(item.date!==date)continue;const start=new Date(`${item.date}T${item.startTime}:00`).getTime(),id=`${item.date}-${item.startTime}-${item.title}`;if(now>=start-60*60*1000&&now<start&& !sent.has(id)){new Notification('스터디온 · 1시간 뒤 공부 시작',{body:`${item.startTime}~${item.endTime} ${item.title}`});sent.add(id);}}};
-  $('enable-reminders').addEventListener('click',async()=>{if(!('Notification' in window)){render();return;}const permission=await Notification.requestPermission();if(permission==='granted'){localStorage.setItem(enabledKey,'true');status('알림을 켰어요. 이 사이트를 열어 두면 1시간 전에 알려드려요.');notify();}else status('알림 권한이 허용되지 않았어요. 브라우저 설정에서 알림을 허용할 수 있어요.',true);render();});
+  $('enable-reminders').addEventListener('click',async()=>{if(!('Notification' in window)){render();return;}try { if(window.studyonOneSignal) await window.studyonOneSignal.Notifications.requestPermission(); else await Notification.requestPermission(); } catch {} if(Notification.permission==='granted'){localStorage.setItem(enabledKey,'true');status('알림을 켰어요. OneSignal 구독과 1시간 전 알림을 준비했어요.');notify();}else status('알림 권한이 허용되지 않았어요. 브라우저 설정에서 알림을 허용해 주세요.',true);render();});
   $('test-reminder').addEventListener('click',()=>{if(!('Notification' in window)||Notification.permission!=='granted'){status('먼저 알림을 켜고 브라우저 권한을 허용해 주세요.',true);return;}new Notification('스터디온 · 공부 시작 알림',{body:'테스트 알림이에요. 1시간 뒤 수학 2단원 공부가 시작돼요.'});status('테스트 알림을 보냈어요. 화면 오른쪽 위 알림을 확인해 주세요.');});
   $('disable-reminders').addEventListener('click',()=>{localStorage.removeItem(enabledKey);render();});
   render();notify();setInterval(notify,60000);
@@ -852,6 +853,17 @@ renderBanks();
 
 </script>
   <script>
+    window.OneSignalDeferred = window.OneSignalDeferred || [];
+    window.OneSignalDeferred.push(async OneSignal => {
+      try {
+        await OneSignal.init({
+          appId: '4e482348-7a62-4b58-84cb-65c90530d28c',
+          serviceWorkerPath: 'onesignal/OneSignalSDKWorker.js',
+          serviceWorkerParam: { scope: '/onesignal/' }
+        });
+        window.studyonOneSignal = OneSignal;
+      } catch {}
+    });
     if ('serviceWorker' in navigator && location.protocol === 'https:') {
       window.addEventListener('load', () => navigator.serviceWorker.register('/sw.js').catch(() => {}));
     }
@@ -864,7 +876,3 @@ renderBanks();
   </script>
 </body>
 </html>
-
-
-
-
