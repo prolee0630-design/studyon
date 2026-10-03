@@ -117,6 +117,27 @@
     @media (prefers-reduced-motion:reduce) { html { scroll-behavior:auto; } }
     [hidden] { display:none !important; }
     .study-card { margin-bottom:18px; }
+    .exam-setup { display:grid; gap:18px; margin-bottom:18px; }
+    .exam-setup-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:16px; }
+    .exam-availability { display:flex; flex-wrap:wrap; gap:8px; }
+    .exam-availability label { display:flex; gap:6px; align-items:center; padding:8px 10px; border:1px solid #d5def2; border-radius:10px; cursor:pointer; }
+    .topic-list { display:grid; gap:10px; }
+    .topic-row { display:grid; grid-template-columns:minmax(0,1fr) 112px auto; gap:10px; align-items:end; padding:12px; background:#f8faff; border:1px solid var(--line); border-radius:12px; }
+    .schedule-summary { margin:14px 0 8px; padding:14px; border-radius:12px; background:#effbf6; color:#245746; }
+    .schedule-summary.level-high { background:#fff0ed; color:#9b311e; }
+    .schedule-summary.level-mid { background:#fff8e6; color:#775500; }
+    .schedule-summary.level-low { background:#effbf6; color:#245746; }
+    .schedule-list { display:grid; gap:10px; margin:0; padding:0; list-style:none; }
+    .schedule-item { display:flex; flex-wrap:wrap; justify-content:space-between; gap:8px 16px; padding:14px; border-top:1px solid var(--line); }
+    .schedule-item strong { overflow-wrap:anywhere; }
+    .schedule-item span { color:var(--muted); font-size:.9rem; }
+    .weekly-slots { display:grid; grid-template-columns:repeat(7,minmax(110px,1fr)); gap:10px; margin-top:10px; }
+    .weekly-slot { display:grid; grid-template-columns:auto 1fr; gap:8px; align-items:center; padding:10px; border:1px solid var(--line); border-radius:12px; background:#f8faff; }
+    .weekly-slot .slot-times { grid-column:1 / -1; display:grid; grid-template-columns:1fr 1fr; gap:6px; }
+    .weekly-slot input[type=time] { width:100%; min-width:0; padding:8px; border:1px solid #bdc8de; border-radius:8px; font:inherit; }
+    @media(max-width:850px){.exam-setup-grid{grid-template-columns:1fr}.topic-row{grid-template-columns:minmax(0,1fr) 112px auto}.weekly-slots{grid-template-columns:repeat(4,minmax(110px,1fr))}}
+    @media(max-width:600px){.weekly-slots{grid-template-columns:repeat(2,minmax(0,1fr))}}
+    @media(max-width:520px){.topic-row{grid-template-columns:1fr}.topic-row .study-button{width:100%}}
     .task-form { display:grid; grid-template-columns:minmax(0,1fr) auto; align-items:end; gap:16px; margin-bottom:14px; }
     .task-actions, .date-actions { display:flex; flex-wrap:wrap; align-items:center; gap:8px; }
     .study-button { min-height:44px; padding:10px 14px; border:1px solid #d5def2; border-radius:10px; background:var(--blue-2); color:var(--blue); cursor:pointer; font-weight:700; }
@@ -142,6 +163,8 @@
     .task-form { grid-template-columns:minmax(0,2fr) minmax(0,1fr) minmax(0,1fr); }
     .task-form > .task-actions { grid-column:1 / -1; }
     .report-heading { flex-wrap:wrap; gap:16px; }
+    .range-tabs { display:flex; flex-wrap:wrap; gap:8px; }
+    .range-tabs button.active { color:#fff; background:var(--blue); border-color:var(--blue); }
     .report-metrics { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:16px; margin-bottom:18px; }
     .report-metrics strong { font-size:clamp(1.3rem,2.5vw,2rem); overflow-wrap:anywhere; }
     .report-metrics p { margin-top:0; }
@@ -207,12 +230,13 @@
       <nav aria-label="주요 메뉴">
         <button class="nav active" data-view="home">홈</button>
         <button class="nav" data-view="plan">공부 계획</button>
+        <button class="nav" data-view="timetable">공부 시간표</button>
         <button class="nav" data-view="review">오답 복습</button>
         <button class="nav" data-view="habit">공부 습관</button>
         <button class="nav" data-view="report">학습 리포트</button>
         <button class="nav" data-view="profile">프로필 정보</button>
       </nav>
-      <div class="aside-note">오늘 할 일과 타이머를 먼저 사용해 보세요. 나머지 기능은 준비 중이에요.</div>
+      <div class="aside-note">공부 계획을 만든 뒤, 공부 시간표에서 오늘의 계획을 실행해 보세요.</div>
     </aside>
 
     <main>
@@ -236,14 +260,45 @@
         </div>
         <div class="card home-review"><div><strong>오늘의 오답 복습</strong><p class="muted" id="home-review-count">오답 기록을 불러오는 중이에요.</p></div><button class="study-button" data-go="review">오답 복습하기 →</button></div>
         <div class="grid">
-          <article class="card feature"><span class="icon">🗓</span><h3>공부 계획</h3><p>과목과 시험일까지 고려한 학습 일정을 확인해요.</p><button class="link" data-go="plan">계획 보기 →</button></article>
+          <article class="card feature"><span class="icon">🗓</span><h3>공부 계획</h3><p>시험 범위와 가능한 시간을 입력해 학습 계획을 만들어요.</p><button class="link" data-go="plan">계획 만들기 →</button></article>
           <article class="card feature"><span class="icon">✓</span><h3>공부 습관</h3><p>나의 공부 습관을 진단하고 작은 목표를 정해요.</p><button class="link" data-go="habit">습관 진단 →</button></article>
           <article class="card feature"><span class="icon">▥</span><h3>학습 리포트</h3><p>공부 시간과 목표 달성 변화를 한눈에 확인해요.</p><button class="link" data-go="report">리포트 보기 →</button></article>
         </div>
       </section>
 
       <section class="view" id="plan">
-        <div class="section-head"><div><h2>오늘의 공부 계획</h2><span class="muted">할 일을 정하고, 공부한 만큼 기록해요.</span></div></div>
+        <div class="section-head"><div><h2>공부 계획</h2><span class="muted">시험 범위와 가능한 시간을 넣으면, 난이도를 반영한 공부 계획을 만들어요.</span></div></div>
+        <section class="card exam-setup" aria-labelledby="exam-setup-title">
+          <div><h3 id="exam-setup-title">시험 공부 세팅</h3><p class="muted">단원 이름은 목차를 보고 직접 적어 주세요. 저장한 계획은 이 브라우저에 보관돼요.</p></div>
+          <form id="exam-form">
+            <div class="exam-setup-grid">
+              <label class="field" for="exam-name">시험 이름<input id="exam-name" maxlength="80" required placeholder="예: 2학기 중간고사"></label>
+              <label class="field" for="exam-subject">과목<select id="exam-subject"><option>수학</option><option>국어</option><option>영어</option><option>과학</option><option>사회</option><option>기타</option></select></label>
+              <label class="field" for="exam-date">시험일<input id="exam-date" type="date" required></label>
+              <label class="field" for="exam-start">공부 시작일<input id="exam-start" type="date" required></label>
+            </div>
+            <div class="field"><span>일주일 공부 가능 시간</span><p class="profile-hint">공부할 요일을 체크하고, 그날 실제로 가능한 시작·종료 시간을 입력하세요.</p><div class="weekly-slots" id="exam-days">
+              <label class="weekly-slot"><span><input type="checkbox" value="1" checked> 월</span><span class="slot-times"><input type="time" value="18:00" aria-label="월요일 시작 시간"><input type="time" value="21:00" aria-label="월요일 종료 시간"></span></label>
+              <label class="weekly-slot"><span><input type="checkbox" value="2" checked> 화</span><span class="slot-times"><input type="time" value="18:00" aria-label="화요일 시작 시간"><input type="time" value="21:00" aria-label="화요일 종료 시간"></span></label>
+              <label class="weekly-slot"><span><input type="checkbox" value="3" checked> 수</span><span class="slot-times"><input type="time" value="18:00" aria-label="수요일 시작 시간"><input type="time" value="21:00" aria-label="수요일 종료 시간"></span></label>
+              <label class="weekly-slot"><span><input type="checkbox" value="4" checked> 목</span><span class="slot-times"><input type="time" value="18:00" aria-label="목요일 시작 시간"><input type="time" value="21:00" aria-label="목요일 종료 시간"></span></label>
+              <label class="weekly-slot"><span><input type="checkbox" value="5" checked> 금</span><span class="slot-times"><input type="time" value="18:00" aria-label="금요일 시작 시간"><input type="time" value="21:00" aria-label="금요일 종료 시간"></span></label>
+              <label class="weekly-slot"><span><input type="checkbox" value="6"> 토</span><span class="slot-times"><input type="time" value="10:00" aria-label="토요일 시작 시간"><input type="time" value="12:00" aria-label="토요일 종료 시간"></span></label>
+              <label class="weekly-slot"><span><input type="checkbox" value="0"> 일</span><span class="slot-times"><input type="time" value="10:00" aria-label="일요일 시작 시간"><input type="time" value="12:00" aria-label="일요일 종료 시간"></span></label>
+            </div></div>
+            <div class="study-list-head"><h3>시험 범위와 난이도</h3><button class="study-button" id="add-topic" type="button">단원 추가</button></div>
+            <p class="profile-hint">상은 더 많은 시간을 배정하고 먼저 공부해요. 단원을 추가한 뒤 시간표를 생성하세요.</p>
+            <div class="topic-list" id="topic-list"></div>
+            <div class="task-actions"><button class="study-button filled" type="submit">시간표 만들기</button><button class="study-button" id="clear-exam" type="button">새 시험 계획</button></div>
+            <p id="exam-status" class="profile-message" role="status" aria-live="polite"></p>
+          </form>
+        </section>
+      </section>
+      <section class="view" id="timetable">
+        <div class="section-head"><div><h2>공부 시간표</h2><span class="muted">오늘 해야 할 공부만 확인하고, 바로 시작해요.</span></div></div>
+        <section id="exam-schedule" class="card study-card" hidden><div class="study-list-head"><div><h3 id="schedule-title">생성된 시간표</h3><p id="schedule-summary" class="schedule-summary"></p></div><button class="study-button" id="rebalance-schedule" type="button">진행 상황 반영해 조정</button></div><div class="date-actions"><button class="study-button" id="schedule-prev" type="button">← 이전 날짜</button><strong id="schedule-date" aria-live="polite"></strong><button class="study-button" id="schedule-next" type="button">다음 날짜 →</button><button class="study-button filled" id="add-schedule-tasks" type="button">이 날 할 일에 추가</button></div><p id="schedule-empty" class="muted" hidden>이 날에는 공부 계획이 없어요.</p><ul class="schedule-list" id="schedule-list"></ul></section>
+        <section class="card study-card" aria-labelledby="reminder-title"><h3 id="reminder-title">공부 알림</h3><p class="muted">오늘 시간표 중 다음 공부가 시작되기 1시간 전에 알려드려요. 알림은 이 사이트가 열려 있을 때 작동해요.</p><div class="task-actions"><button class="study-button" id="enable-reminders" type="button">알림 켜기</button><button class="study-button" id="test-reminder" type="button" hidden>테스트 알림 보내기</button><button class="study-button" id="disable-reminders" type="button" hidden>알림 끄기</button></div><p id="reminder-status" class="profile-message" role="status" aria-live="polite"></p></section>
+        <div class="section-head"><div><h2>오늘의 공부 실행</h2><span class="muted">시간표를 추가했거나 직접 만든 할 일을 타이머로 실행하고 기록해요.</span></div></div>
         <div class="card study-card">
           <form id="task-form" class="task-form"><label class="field" for="task-title">오늘 할 일<input id="task-title" maxlength="120" required placeholder="예: 수학 오답 5문제 다시 풀기" autocomplete="off"></label><label class="field" for="task-subject">과목<select id="task-subject"><option>미분류</option><option>수학</option><option>국어</option><option>영어</option><option>과학</option><option>사회</option><option>기타</option></select></label><label class="field" for="task-minutes">예상 시간 (분)<input id="task-minutes" type="number" min="1" max="1440" step="1" placeholder="선택 입력"></label><div class="task-actions"><button class="study-button filled" id="task-submit" type="submit">할 일 추가</button><button class="study-button" id="cancel-edit" type="button" hidden>수정 취소</button></div></form>
           <p class="profile-hint">하루 1~3개부터 시작해요. 기록은 이 브라우저에 자동 저장돼요.</p>
@@ -254,8 +309,8 @@
       </section>
       <section class="view" id="habit"><div class="section-head"><div><h2>공부 습관</h2><span class="muted">6문항으로 지금의 습관을 점검하고, 오늘의 한 가지 행동을 정해요.</span></div></div><div class="habit-layout"><form id="habit-form" class="card habit-form"><fieldset class="habit-question"><legend>1. 공부할 시간을 미리 정하나요?</legend><div class="habit-options"><label><input type="radio" name="plan" value="2" required>대부분 정한다</label><label><input type="radio" name="plan" value="1">가끔 정한다</label><label><input type="radio" name="plan" value="0">거의 정하지 않는다</label></div></fieldset><fieldset class="habit-question"><legend>2. 할 일을 작은 단위로 나누나요?</legend><div class="habit-options"><label><input type="radio" name="plan" value="2" required>대부분 한다</label><label><input type="radio" name="plan" value="1">가끔 한다</label><label><input type="radio" name="plan" value="0">거의 안 한다</label></div></fieldset><fieldset class="habit-question"><legend>3. 한 번 시작하면 25분 이상 집중하나요?</legend><div class="habit-options"><label><input type="radio" name="focus" value="2" required>대부분 가능하다</label><label><input type="radio" name="focus" value="1">가끔 가능하다</label><label><input type="radio" name="focus" value="0">어렵다</label></div></fieldset><fieldset class="habit-question"><legend>4. 공부 중 휴대폰 알림을 끄나요?</legend><div class="habit-options"><label><input type="radio" name="focus" value="2" required>항상 끈다</label><label><input type="radio" name="focus" value="1">가끔 끈다</label><label><input type="radio" name="focus" value="0">대부분 켜 둔다</label></div></fieldset><fieldset class="habit-question"><legend>5. 틀린 문제를 다시 보나요?</legend><div class="habit-options"><label><input type="radio" name="review" value="2" required>며칠 안에 다시 본다</label><label><input type="radio" name="review" value="1">가끔 다시 본다</label><label><input type="radio" name="review" value="0">거의 다시 안 본다</label></div></fieldset><fieldset class="habit-question"><legend>6. 공부가 끝난 뒤 오늘 한 일을 확인하나요?</legend><div class="habit-options"><label><input type="radio" name="review" value="2" required>대부분 확인한다</label><label><input type="radio" name="review" value="1">가끔 확인한다</label><label><input type="radio" name="review" value="0">거의 확인 안 한다</label></div></fieldset><div class="task-actions"><button class="study-button filled" type="submit">습관 진단하기</button><button class="study-button" id="habit-reset" type="button">다시 하기</button></div><p id="habit-message" class="habit-message" role="status" aria-live="polite"></p></form><aside id="habit-result" class="card habit-result" hidden><div><p class="eyebrow">나의 습관 결과</p><h3 id="habit-title">진단 결과</h3><p id="habit-summary" class="muted"></p></div><div class="habit-score"><article><span>계획</span><strong id="habit-plan">0/4</strong></article><article><span>집중</span><strong id="habit-focus">0/4</strong></article><article><span>복습</span><strong id="habit-review">0/4</strong></article></div><p class="habit-action" id="habit-action"></p></aside></div></section>
       <section class="view" id="report">
-<div class="section-head report-heading"><div><h2>나의 학습 리포트</h2><p class="muted" id="report-period"></p></div><label class="field" for="report-range">조회 기간<select id="report-range"><option value="today">오늘</option><option value="week" selected>이번 주</option></select></label></div>
-<div class="report-metrics"><article class="card"><p class="muted">공부 시간</p><strong id="report-time">0초</strong></article><article class="card"><p class="muted">완료한 목표</p><strong id="report-done">0 / 0개</strong></article><article class="card"><p class="muted">목표 달성률</p><strong id="report-percent">0%</strong></article><article class="card"><p class="muted">예상 공부 시간</p><strong id="report-planned">0분</strong></article></div>
+<div class="section-head report-heading"><div><h2>나의 학습 리포트</h2><p class="muted" id="report-period"></p></div><div class="range-tabs" aria-label="리포트 조회 기간"><button type="button" class="study-button" data-report-range="today">오늘</button><button type="button" class="study-button filled active" data-report-range="week">이번 주</button><button type="button" class="study-button" data-report-range="all">전체</button><select id="report-range" hidden><option value="today">오늘</option><option value="week" selected>이번 주</option><option value="all">전체</option></select></div></div>
+<div class="report-metrics"><article class="card"><p class="muted">공부 시간</p><strong id="report-time">0초</strong></article><article class="card"><p class="muted">완료한 목표</p><strong id="report-done">0 / 0개</strong></article><article class="card"><p class="muted">목표 달성률</p><strong id="report-percent">0%</strong></article><article class="card"><p class="muted">예상 공부 시간</p><strong id="report-planned">0분</strong></article><article class="card"><p class="muted">시간표 이행률</p><strong id="report-schedule">0 / 0개</strong><p class="profile-hint" id="report-schedule-detail">시간표를 만들면 표시돼요.</p></article></div>
 <p class="muted" id="report-empty">아직 기록이 없어요. 공부 계획에서 첫 목표를 추가해 보세요.</p>
 <div class="report-columns"><article class="card"><h3>날짜별 공부 시간</h3><div id="report-days"></div><p class="profile-hint" id="report-comparison"></p></article><article class="card"><h3>과목별 기록</h3><p class="muted" id="report-subject-empty">과목별 기록이 아직 없어요.</p><ul class="task-list" id="report-subjects"></ul></article></div>
 <article class="card study-card"><h3>완료한 목표</h3><p class="muted" id="report-completed-empty">완료 체크한 목표가 여기에 나타나요.</p><ul class="task-list" id="report-completed"></ul></article>
@@ -301,7 +356,7 @@
     </main>
   </div>
   <script>
-    const titles = { home:'오늘도 한 걸음씩!', plan:'나의 공부 계획', habit:'공부 습관 진단', report:'나의 학습 리포트', profile:'프로필 정보', review:'오답 복습' };
+    const titles = { home:'오늘도 한 걸음씩!', plan:'나의 공부 계획', timetable:'오늘의 공부 시간표', habit:'공부 습관 진단', report:'나의 학습 리포트', profile:'프로필 정보', review:'오답 복습' };
     function showView(id) {
       document.querySelectorAll('.view').forEach((view) => view.classList.toggle('active', view.id === id));
       document.querySelectorAll('.nav').forEach((item) => item.classList.toggle('active', item.dataset.view === id));
@@ -468,6 +523,11 @@ const Study = (() => {
   function report(state,range,now=Date.now()) {
     const end=day(now), first=new Date(now);first.setHours(12,0,0,0);
     if(range==='week')first.setDate(first.getDate()-((first.getDay()+6)%7));
+    if(range==='all'){
+      let baseline=state.tasks.length?state.tasks.map(task=>task.date).sort()[0]:end;
+      try { const plan=JSON.parse(localStorage.getItem('studyon.exam-plan.v1')||'null'); if(/^\d{4}-\d{2}-\d{2}$/.test(plan?.settings?.start||'') && plan.settings.start<=end)baseline=plan.settings.start; } catch {}
+      first.setTime(new Date(`${baseline}T12:00:00`).getTime());
+    }
     const start=day(first.getTime());
     const tasks=state.tasks.filter(t=>t.date>=start&&t.date<=end).map(t=>({...t,subject:subject(t.subject),planned:planned(t.planned),seconds:seconds(t,state.active,now)}));
     const days=[]; for(let d=new Date(first);day(d.getTime())<=end;d.setDate(d.getDate()+1)){const date=day(d.getTime());days.push({date,seconds:tasks.filter(t=>t.date===date).reduce((n,t)=>n+t.seconds,0)});}
@@ -537,18 +597,24 @@ const Study = (() => {
   $('show-today').addEventListener('click',()=>{selected=Study.day();render();});
   $('pause-timer').addEventListener('click',()=>dispatch({type:'pause'}));
   $('finish-timer').addEventListener('click',()=>{if(state.active)dispatch({type:'toggle',id:state.active.id});});
-  $('focus-action').addEventListener('click',()=>{showView('plan');selected=Study.day();const current=state.tasks.find(t=>t.id===state.active?.id);if(current)selected=current.date;else{const next=state.tasks.find(t=>t.date===selected&&!t.done);if(next)dispatch({type:'start',id:next.id});else $('task-title').focus();}render();});
+  $('focus-action').addEventListener('click',()=>{showView('timetable');selected=Study.day();const current=state.tasks.find(t=>t.id===state.active?.id);if(current)selected=current.date;else{const next=state.tasks.find(t=>t.date===selected&&!t.done);if(next)dispatch({type:'start',id:next.id});else $('task-title').focus();}render();});
   $('undo-delete').addEventListener('click',()=>{if(!deleted)return;try{const next={...state,tasks:[...state.tasks,deleted]};localStorage.setItem(key,JSON.stringify(next));state=next;selected=deleted.date;deleted=null;$('undo-delete').hidden=true;render();say('할 일을 복구했어요.');}catch{say('복구 내용을 저장하지 못했어요.',true);}});
   window.addEventListener('storage',e=>{if(e.key===key){try{state=Study.load(e.newValue);cancelEdit();render();say('다른 탭의 변경사항을 불러왔어요.');}catch{say('다른 탭의 기록을 읽지 못했어요.',true);}}});
   function renderReport(now=Date.now()) {
     const range=$('report-range').value;
     const data=Study.report(state,range,now);
     const duration=n=>n<60?`${Math.floor(n)}초`:`${Math.floor(n/3600)?Math.floor(n/3600)+'시간 ':''}${Math.floor(n/60)%60}분`;
-    $('report-period').textContent=`${data.start} ~ ${data.end} · ${range==='today'?'오늘':'월요일부터 오늘까지'}`;
+    $('report-period').textContent=`${data.start} ~ ${data.end} · ${range==='today'?'오늘':range==='week'?'월요일부터 오늘까지':'전체 기록'}`;
     $('report-time').textContent=duration(data.seconds);
     $('report-done').textContent=`${data.done} / ${data.total}개`;
     $('report-percent').textContent=`${data.total?Math.round(data.done/data.total*100):0}%`;
     $('report-planned').textContent=`${data.planned}분`;
+    let scheduled=[];
+    try { const saved=JSON.parse(localStorage.getItem('studyon.exam-plan.v1')||'null'); scheduled=Array.isArray(saved?.schedule)?saved.schedule.filter(item=>item.date>=data.start&&item.date<=data.end):[]; } catch {}
+    const completedSchedule=scheduled.filter(item=>state.tasks.some(task=>task.done&&task.date===item.date&&String(task.title).includes(item.title))).length;
+    const schedulePercent=scheduled.length?Math.round(completedSchedule/scheduled.length*100):0;
+    $('report-schedule').textContent=`${completedSchedule} / ${scheduled.length}개`;
+    $('report-schedule-detail').textContent=scheduled.length?`${schedulePercent}% · 시간표에 배정된 항목 기준`:'시간표를 만들면 표시돼요.';
     $('report-comparison').textContent=data.planned?`예상 ${data.planned}분 · 실제 ${duration(data.seconds)}. 다음 계획을 세울 때 비교해 보세요.`:'할 일에 예상 시간을 적으면 실제 공부 시간과 비교할 수 있어요.';
     $('report-empty').hidden=data.total>0;
     $('report-days').replaceChildren();
@@ -578,8 +644,65 @@ const Study = (() => {
     $('report-completed-empty').hidden=data.completed.length>0;
   }
   $('report-range').addEventListener('change',()=>renderReport());
+  document.querySelectorAll('[data-report-range]').forEach(button=>button.addEventListener('click',()=>{const range=button.dataset.reportRange;$('report-range').value=range;document.querySelectorAll('[data-report-range]').forEach(item=>{const active=item===button;item.classList.toggle('active',active);item.classList.toggle('filled',active);});renderReport();}));
+  document.addEventListener('studyon:add-schedule',event=>{
+    const tasks=Array.isArray(event.detail?.tasks)?event.detail.tasks:[];
+    if(!tasks.length)return;
+    try {
+      let next=state;
+      for(const task of tasks){
+        const when=new Date(`${task.date}T12:00:00`).getTime();
+        next=Study.reduce(next,{type:'add',id:crypto.randomUUID?crypto.randomUUID():`${Date.now()}-${Math.random()}`,title:`${task.startTime}~${task.endTime} · ${task.title}`,subject:task.subject,planned:task.minutes},when);
+      }
+      localStorage.setItem(key,JSON.stringify(next));state=next;selected=tasks[0].date;render();say(`${tasks.length}개 계획을 공부 실행 목록에 추가했어요.`);
+    } catch { say('시간표를 추가하지 못했어요. 브라우저 저장 공간을 확인해 주세요.',true); }
+  });
 
   render();setInterval(tick,1000);
+})();
+
+(() => {
+  const $=id=>document.getElementById(id), key='studyon.exam-plan.v1', form=$('exam-form');
+  const today=Study.day(); $('exam-start').value=today; $('exam-start').min=today; $('exam-date').min=today;
+  let schedule=[], scheduleDay='';
+  const topicRow=(topic={name:'',level:'중'})=>{
+    const row=document.createElement('div');row.className='topic-row';
+    row.innerHTML=`<label class="field"><span>단원</span><input maxlength="100" required placeholder="예: 2단원 일차함수" value="${String(topic.name||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;')}"></label><label class="field"><span>난이도</span><select><option${topic.level==='하'?' selected':''}>하</option><option${topic.level==='중'?' selected':''}>중</option><option${topic.level==='상'?' selected':''}>상</option></select></label><button type="button" class="study-button">삭제</button>`;
+    row.querySelector('button').addEventListener('click',()=>{if($('topic-list').children.length>1)row.remove();else $('exam-status').textContent='단원은 하나 이상 필요해요.';});return row;
+  };
+  const addTopic=topic=>$('topic-list').append(topicRow(topic));$('add-topic').addEventListener('click',()=>addTopic());addTopic();
+  const message=(text,error=false)=>{$('exam-status').textContent=text;$('exam-status').classList.toggle('error',error);};
+  const minutes=time=>{const [hour,minute]=String(time||'').split(':').map(Number);return Number.isInteger(hour)&&Number.isInteger(minute)?hour*60+minute:NaN;};
+  const clock=value=>`${String(Math.floor(value/60)).padStart(2,'0')}:${String(value%60).padStart(2,'0')}`;
+  const slotsBetween=(start,end,weekly)=>{const slots=[];for(let d=new Date(`${start}T12:00:00`);d<new Date(`${end}T12:00:00`);d.setDate(d.getDate()+1)){const slot=weekly[d.getDay()];if(slot)slots.push({date:Study.day(d.getTime()),...slot,cursor:slot.start});}return slots;};
+  const build=(settings,topics)=>{
+    const slots=slotsBetween(settings.start,settings.examDate,settings.weekly);if(!slots.length)throw Error('시험 전 공부 가능한 시간이 없어요. 요일과 시작·종료 시간을 확인해 주세요.');
+    const weight={하:1,중:2,상:3}, primary=topics.flatMap(topic=>Array.from({length:weight[topic.level]},()=>({...topic,review:false}))).sort((a,b)=>weight[b.level]-weight[a.level]), queue=[...primary,...topics.map(topic=>({...topic,review:true}))];
+    const result=[];for(let index=0;index<queue.length;index++){let slot=slots[Math.min(slots.length-1,Math.floor(index*slots.length/queue.length))],tries=0;while(slot.end-slot.cursor<20&&tries<slots.length){slot=slots[(slots.indexOf(slot)+1)%slots.length];tries++;}if(slot.end-slot.cursor<20)break;const duration=Math.min(50,slot.end-slot.cursor),topic=queue[index],start=slot.cursor,end=start+duration;slot.cursor=end;result.push({date:slot.date,startTime:clock(start),endTime:clock(end),title:`${settings.name} · ${topic.name}${topic.review?' 복습':''}`,subject:settings.subject,minutes:duration,level:topic.level});}return result.sort((a,b)=>`${a.date}${a.startTime}`.localeCompare(`${b.date}${b.startTime}`));
+  };
+  const timetableLevel=()=>{const weight={하:1,중:2,상:3},average=schedule.reduce((sum,item)=>sum+(weight[item.level]||2),0)/schedule.length,perDay={};schedule.forEach(item=>perDay[item.date]=(perDay[item.date]||0)+item.minutes);const longest=Math.max(...Object.values(perDay));if(average>=2.45||longest>140)return {name:'상',efficiency:'예상 집중 효율 70~80%',detail:'도전적인 시간표예요. 상 난이도 단원이 많거나 하루 공부량이 길어요. 한 칸을 끝낸 뒤 10분 휴식을 넣어 주세요.',className:'level-high'};if(average>=1.65||longest>90)return {name:'중',efficiency:'예상 집중 효율 80~90%',detail:'그럭저럭 해낼 수 있는 시간표예요. 계획대로 시작하고, 밀린 날만 다음 가능한 시간으로 옮겨 주세요.',className:'level-mid'};return {name:'하',efficiency:'예상 집중 효율 90~95%',detail:'누구나 편하게 시작할 수 있는 시간표예요. 여유가 생기면 복습 한 칸을 추가해도 좋아요.',className:'level-low'};};
+  const formatDay=date=>{const d=new Date(`${date}T12:00:00`),days=['일','월','화','수','목','금','토'];return `${d.getMonth()+1}.${d.getDate()} ${days[d.getDay()]}`;};
+  const moveDay=offset=>{const d=new Date(`${scheduleDay}T12:00:00`);d.setDate(d.getDate()+offset);scheduleDay=Study.day(d.getTime());render();};
+  const studyTasks=()=>{try{return JSON.parse(localStorage.getItem('studyon.study.v1')||'{"tasks":[]}').tasks||[];}catch{return [];}};
+  const completed=item=>studyTasks().some(task=>task.done&&task.date===item.date&&String(task.title).includes(item.title));
+  const render=()=>{const list=$('schedule-list');list.replaceChildren();if(!schedule.length){$('exam-schedule').hidden=true;return;}$('exam-schedule').hidden=false;if(!scheduleDay)scheduleDay=today;const todayItems=schedule.filter(item=>item.date===scheduleDay),done=todayItems.filter(completed).length;$('schedule-title').textContent=`오늘의 시간표 · ${done}/${todayItems.length}개 완료`;const rating=timetableLevel(),summary=$('schedule-summary');summary.className=`schedule-summary ${rating.className}`;summary.textContent=todayItems.length?`오늘 ${todayItems.reduce((sum,item)=>sum+item.minutes,0)}분 계획 · 시간표 전체 난이도 ${rating.name} · ${rating.efficiency}. ${rating.detail}`:`오늘은 자동으로 배정된 공부가 없어요. 이전·다음 날짜를 눌러 다른 날의 시간표를 확인해 보세요.`;$('schedule-date').textContent=formatDay(scheduleDay);$('schedule-empty').hidden=todayItems.length>0;$('add-schedule-tasks').disabled=!todayItems.length;$('add-schedule-tasks').textContent=todayItems.length?'오늘 할 일에 추가':'오늘 계획 없음';for(const item of todayItems){const li=document.createElement('li');li.className='schedule-item';const title=document.createElement('strong');title.textContent=completed(item)?`✓ ${item.title}`:item.title;const meta=document.createElement('span');meta.textContent=`${item.startTime}~${item.endTime} · ${item.subject} · 단원 난이도 ${item.level||'중'}`;li.append(title,meta);list.append(li);}};
+  form.addEventListener('submit',event=>{event.preventDefault();const weekly={};document.querySelectorAll('#exam-days .weekly-slot').forEach(row=>{const checked=row.querySelector('input[type="checkbox"]'),times=row.querySelectorAll('input[type="time"]'),start=minutes(times[0].value),end=minutes(times[1].value);if(checked.checked)weekly[checked.value]={start,end};});const settings={name:$('exam-name').value.trim(),subject:$('exam-subject').value,examDate:$('exam-date').value,start:$('exam-start').value,weekly};const topics=[...$('topic-list').children].map(row=>({name:row.querySelector('input').value.trim(),level:row.querySelector('select').value})).filter(topic=>topic.name);try{if(!settings.name||!settings.examDate||!settings.start||!topics.length)throw Error('시험 정보와 단원을 모두 입력해 주세요.');if(settings.start>=settings.examDate)throw Error('시험일은 공부 시작일보다 뒤여야 해요.');if(!Object.keys(weekly).length)throw Error('공부할 요일을 하나 이상 선택해 주세요.');if(Object.values(weekly).some(slot=>!Number.isFinite(slot.start)||!Number.isFinite(slot.end)||slot.end-slot.start<20))throw Error('선택한 요일의 종료 시간은 시작 시간보다 20분 이상 뒤여야 해요.');schedule=build(settings,topics);scheduleDay=today;localStorage.setItem(key,JSON.stringify({settings,topics,schedule}));render();message('일주일 일정에 맞춰 시간표를 만들었어요. 아래에서 오늘 하루 계획만 확인하세요.');}catch(error){message(error.message,true);}});
+  $('schedule-prev').addEventListener('click',()=>moveDay(-1));$('schedule-next').addEventListener('click',()=>moveDay(1));
+  $('add-schedule-tasks').addEventListener('click',()=>{const todayItems=schedule.filter(item=>item.date===scheduleDay);if(!todayItems.length)return;document.dispatchEvent(new CustomEvent('studyon:add-schedule',{detail:{tasks:todayItems}}));});
+  $('rebalance-schedule').addEventListener('click',()=>{try{const saved=JSON.parse(localStorage.getItem(key)||'null'), overdue=schedule.filter(item=>!completed(item)&&item.date<today);if(!saved?.settings?.weekly)throw Error('현재 시간표는 다시 만들어야 조정할 수 있어요.');if(!overdue.length){message('미완료로 지난 계획이 없어요. 현재 시간표를 잘 따라가고 있어요.');return;}const slots=slotsBetween(today,saved.settings.examDate,saved.settings.weekly);if(!slots.length)throw Error('시험 전 남은 공부 가능 시간이 없어요.');for(const item of schedule.filter(item=>!overdue.includes(item)&&item.date>=today)){const slot=slots.find(slot=>slot.date===item.date);if(slot)slot.cursor=Math.max(slot.cursor,minutes(item.endTime));}let position=0;for(const item of overdue){while(position<slots.length&&slots[position].end-slots[position].cursor<item.minutes)position++;if(position===slots.length)throw Error('남은 가능 시간에 미완료 계획을 모두 넣기 어려워요. 공부 가능 시간을 늘려 주세요.');const slot=slots[position],start=slot.cursor;slot.cursor+=item.minutes;item.date=slot.date;item.startTime=clock(start);item.endTime=clock(slot.cursor);}scheduleDay=overdue[0].date;localStorage.setItem(key,JSON.stringify({...saved,schedule}));render();message(`${overdue.length}개 미완료 계획을 남은 시간에 다시 배정했어요.`);}catch(error){message(error.message||'시간표를 조정하지 못했어요.',true);}});
+  $('clear-exam').addEventListener('click',()=>{form.reset();$('exam-start').value=today;$('topic-list').replaceChildren();addTopic();schedule=[];scheduleDay='';localStorage.removeItem(key);render();message('새 시험 계획을 만들 수 있어요.');});
+  try{const saved=JSON.parse(localStorage.getItem(key)||'null');if(saved?.settings&&Array.isArray(saved.topics)){for(const [id,value] of Object.entries({ 'exam-name':saved.settings.name,'exam-subject':saved.settings.subject,'exam-date':saved.settings.examDate,'exam-start':saved.settings.start }))if($(id))$(id).value=value||'';document.querySelectorAll('#exam-days .weekly-slot').forEach(row=>{const checked=row.querySelector('input[type="checkbox"]'),times=row.querySelectorAll('input[type="time"]'),slot=saved.settings.weekly?.[checked.value];if(slot){checked.checked=true;times[0].value=clock(slot.start);times[1].value=clock(slot.end);}else checked.checked=false;});$('topic-list').replaceChildren();saved.topics.forEach(addTopic);schedule=Array.isArray(saved.schedule)?saved.schedule:[];scheduleDay=today;render();message('마지막 시험 계획을 불러왔어요. 오늘 하루 시간표를 확인하세요.');}}catch{localStorage.removeItem(key);}
+})();
+
+(() => {
+  const enabledKey='studyon.reminders.v1', $=id=>document.getElementById(id), sent=new Set();
+  const status=(text,error=false)=>{$('reminder-status').textContent=text;$('reminder-status').classList.toggle('error',error);};
+  const render=()=>{const enabled=localStorage.getItem(enabledKey)==='true';$('enable-reminders').hidden=enabled;$('test-reminder').hidden=!enabled;$('disable-reminders').hidden=!enabled;if(!('Notification' in window))status('이 브라우저는 알림을 지원하지 않아요.',true);else if(enabled)status(Notification.permission==='granted'?'알림이 켜져 있어요. 다음 공부 1시간 전에 알려드릴게요.':'브라우저 설정에서 알림 권한을 허용해 주세요.',Notification.permission!=='granted');else status('알림을 켜면 다음 공부 시작 1시간 전에 알려드려요.');};
+  const notify=()=>{if(localStorage.getItem(enabledKey)!=='true'||!('Notification' in window)||Notification.permission!=='granted')return;let saved;try{saved=JSON.parse(localStorage.getItem('studyon.exam-plan.v1')||'null');}catch{return;}const now=Date.now(),date=Study.day(now);for(const item of saved?.schedule||[]){if(item.date!==date)continue;const start=new Date(`${item.date}T${item.startTime}:00`).getTime(),id=`${item.date}-${item.startTime}-${item.title}`;if(now>=start-60*60*1000&&now<start&& !sent.has(id)){new Notification('스터디온 · 1시간 뒤 공부 시작',{body:`${item.startTime}~${item.endTime} ${item.title}`});sent.add(id);}}};
+  $('enable-reminders').addEventListener('click',async()=>{if(!('Notification' in window)){render();return;}const permission=await Notification.requestPermission();if(permission==='granted'){localStorage.setItem(enabledKey,'true');status('알림을 켰어요. 이 사이트를 열어 두면 1시간 전에 알려드려요.');notify();}else status('알림 권한이 허용되지 않았어요. 브라우저 설정에서 알림을 허용할 수 있어요.',true);render();});
+  $('test-reminder').addEventListener('click',()=>{if(!('Notification' in window)||Notification.permission!=='granted'){status('먼저 알림을 켜고 브라우저 권한을 허용해 주세요.',true);return;}new Notification('스터디온 · 공부 시작 알림',{body:'테스트 알림이에요. 1시간 뒤 수학 2단원 공부가 시작돼요.'});status('테스트 알림을 보냈어요. 화면 오른쪽 위 알림을 확인해 주세요.');});
+  $('disable-reminders').addEventListener('click',()=>{localStorage.removeItem(enabledKey);render();});
+  render();notify();setInterval(notify,60000);
 })();
 
 const Review = (() => {
