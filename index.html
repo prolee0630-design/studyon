@@ -4,8 +4,14 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="계획, 오답 복습과 학습 기록을 한곳에서 관리하는 학생용 학습 코치 앱">
+  <meta name="theme-color" content="#10204c">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="스터디온">
   <title>스터디온 · 나만의 학습 코치</title>
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%23204bd8'/%3E%3Cpath d='M18 20h20a8 8 0 0 1 8 8v20H26a8 8 0 0 1-8-8V20Z' fill='white'/%3E%3Cpath d='M26 20v28M32 29h8M32 36h8' stroke='%23204bd8' stroke-width='4' stroke-linecap='round'/%3E%3C/svg%3E">
+  <link rel="apple-touch-icon" href="/icon.svg">
+  <link rel="manifest" href="/app.webmanifest">
   <style>
     :root { --ink:#15213c; --muted:#667085; --line:#e3e8f3; --blue:#204bd8; --blue-2:#eaf0ff; --mint:#dff8ef; --surface:#fff; --bg:#f5f7fc; }
     * { box-sizing:border-box; }
@@ -19,6 +25,7 @@
     .nav { width:100%; border:0; border-radius:12px; padding:12px 14px; color:#cbd5f5; background:transparent; text-align:left; cursor:pointer; }
     .nav:hover, .nav.active { color:#fff; background:#25396f; }
     .aside-note { margin-top:32px; padding:16px; border:1px solid #31467d; border-radius:14px; color:#cbd5f5; font-size:.875rem; }
+    .install-app { width:100%; margin-top:14px; border:1px solid #5b76c7; border-radius:12px; padding:11px; color:#fff; background:#25396f; font-weight:800; cursor:pointer; }
     main { width:100%; min-width:0; padding:34px clamp(20px,4vw,56px) 60px; }
     header { display:flex; align-items:center; justify-content:space-between; gap:24px; margin-bottom:30px; }
     h1 { margin:0 0 5px; font-size:clamp(1.7rem,3vw,2.25rem); line-height:1.2; }
@@ -237,6 +244,7 @@
         <button class="nav" data-view="profile">프로필 정보</button>
       </nav>
       <div class="aside-note">공부 계획을 만든 뒤, 공부 시간표에서 오늘의 계획을 실행해 보세요.</div>
+      <button type="button" class="install-app" id="install-app" hidden>스터디온 앱 설치</button>
     </aside>
 
     <main>
@@ -843,5 +851,20 @@ renderBanks();
 })();
 
 </script>
+  <script>
+    if ('serviceWorker' in navigator && location.protocol === 'https:') {
+      window.addEventListener('load', () => navigator.serviceWorker.register('/sw.js').catch(() => {}));
+    }
+    (() => {
+      const button = document.querySelector('#install-app'); let prompt;
+      window.addEventListener('beforeinstallprompt', event => { event.preventDefault(); prompt = event; button.hidden = false; });
+      button.addEventListener('click', async () => { if (!prompt) return; prompt.prompt(); await prompt.userChoice; prompt = null; button.hidden = true; });
+      window.addEventListener('appinstalled', () => { button.hidden = true; });
+    })();
+  </script>
 </body>
 </html>
+
+
+
+
